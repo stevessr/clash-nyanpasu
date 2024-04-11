@@ -2,6 +2,7 @@ import generouted from "@generouted/react-router/plugin";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vite";
+import forgetti from "vite-plugin-forgetti"; // It should be removed from react v19 released
 import monaco from "vite-plugin-monaco-editor";
 import sassDts from "vite-plugin-sass-dts";
 import svgr from "vite-plugin-svgr";
@@ -34,6 +35,13 @@ export default defineConfig(({ command }) => {
       svgr(),
       react(),
       generouted(),
+      forgetti({
+        preset: "react",
+        filter: {
+          include: "src/**/*.{ts,js,tsx,jsx}",
+          exclude: "node_modules/**/*.{ts,js,tsx,jsx}",
+        },
+      }),
       sassDts(),
       monaco({ languageWorkers: ["editorWorkerService", "typescript"] }),
     ],
