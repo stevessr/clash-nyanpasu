@@ -1,15 +1,16 @@
 {
   "name": "@nyanpasu/scripts",
   "type": "module",
-  "version": "1.6.1",
+  "version": "2.0.0",
   "dependencies": {
     "@actions/github": "6.0.0",
-    "@types/figlet": "1.5.8",
-    "figlet": "1.7.0",
+    "@types/figlet": "1.7.0",
+    "figlet": "1.8.0",
+    "filesize": "10.1.6",
     "p-retry": "6.2.0"
   },
   "devDependencies": {
-    "@octokit/types": "13.6.0",
+    "@octokit/types": "13.6.1",
     "@types/adm-zip": "0.5.5",
     "adm-zip": "0.5.16",
     "colorize-template": "1.0.0",
@@ -20,7 +21,7 @@
     "octokit": "4.0.2",
     "picocolors": "1.1.0",
     "tar": "7.4.3",
-    "telegram": "2.25.11",
-    "undici": "6.19.8"
+    "telegram": "2.25.15",
+    "undici": "6.20.0"
   }
 }

@@ -1,5 +1,8 @@
 import { useLockFn } from "ahooks";
+import * as changeCase from "change-case";
 import dayjs from "dayjs";
+import { t } from "i18next";
+import { size } from "lodash-es";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -79,90 +82,119 @@ export const ConnectionsTable = ({ searchTerm }: { searchTerm?: string }) => {
   }, [latestMessage?.data, searchTerm]);
   const deferredTableData = useDeferredValue(connectionsMessage?.connections);
 
-  const columns: MRT_ColumnDef<TableConnection>[] = [
-    {
-      header: t("Actions"),
-      size: 80,
-      enableSorting: false,
-      enableGlobalFilter: false,
-      accessorFn: ({ id }) => (
-        <div className="flex w-full justify-center">
-          <IconButton
-            color="primary"
-            className="size-5"
-            onClick={() => closeConnect(id)}
-          >
-            <Cancel />
-          </IconButton>
-        </div>
+  const columns = useMemo(
+    () =>
+      (
+        [
+          {
+            header: "Actions",
+            size: 80,
+            enableSorting: false,
+            enableGlobalFilter: false,
+            accessorFn: ({ id }) => (
+              <div className="flex w-full justify-center">
+                <IconButton
+                  color="primary"
+                  className="size-5"
+                  onClick={() => closeConnect(id)}
+                >
+                  <Cancel />
+                </IconButton>
+              </div>
+            ),
+          },
+          {
+            header: "Host",
+            size: 240,
+            accessorFn: ({ metadata }) =>
+              metadata.host || metadata.destinationIP,
+          },
+          {
+            header: "Process",
+            size: 140,
+            accessorFn: ({ metadata }) => metadata.process,
+          },
+          {
+            header: "Downloaded",
+            size: 88,
+            accessorFn: ({ download }) => parseTraffic(download).join(" "),
+            sortingFn: (rowA, rowB) =>
+              rowA.original.download - rowB.original.download,
+          },
+          {
+            header: "Uploaded",
+            size: 88,
+            accessorFn: ({ upload }) => parseTraffic(upload).join(" "),
+            sortingFn: (rowA, rowB) =>
+              rowA.original.upload - rowB.original.upload,
+          },
+          {
+            header: "DL Speed",
+            size: 88,
+            accessorFn: ({ downloadSpeed }) =>
+              parseTraffic(downloadSpeed).join(" ") + "/s",
+            sortingFn: (rowA, rowB) =>
+              (rowA.original.downloadSpeed || 0) -
+              (rowB.original.downloadSpeed || 0),
+          },
+          {
+            header: "UL Speed",
+            size: 88,
+            accessorFn: ({ uploadSpeed }) =>
+              parseTraffic(uploadSpeed).join(" ") + "/s",
+            sortingFn: (rowA, rowB) =>
+              (rowA.original.uploadSpeed || 0) -
+              (rowB.original.uploadSpeed || 0),
+          },
+          {
+            header: "Chains",
+            size: 360,
+            accessorFn: ({ chains }) => [...chains].reverse().join(" / "),
+          },
+          {
+            header: "Rules",
+            size: 200,
+            accessorFn: ({ rule, rulePayload }) =>
+              rulePayload ? `${rule} (${rulePayload})` : rule,
+          },
+          {
+            header: "Time",
+            size: 120,
+            accessorFn: ({ start }) => dayjs(start).fromNow(),
+            sortingFn: (rowA, rowB) =>
+              dayjs(rowA.original.start).diff(rowB.original.start),
+          },
+          {
+            header: "Source",
+            size: 200,
+            accessorFn: ({ metadata: { sourceIP, sourcePort } }) =>
+              `${sourceIP}:${sourcePort}`,
+          },
+          {
+            header: "Destination",
+            size: 200,
+            accessorFn: ({ metadata: { destinationIP, destinationPort } }) =>
+              `${destinationIP}:${destinationPort}`,
+          },
+          {
+            header: "Type",
+            size: 160,
+            accessorFn: ({ metadata }) =>
+              `${metadata.type} (${metadata.network})`,
+          },
+        ] satisfies Array<MRT_ColumnDef<TableConnection>>
+      ).map(
+        (column) =>
+          ({
+            ...column,
+            id: changeCase.snakeCase(column.header),
+            Header(props) {
+              return <span>{t(column.header)}</span>;
+            },
+          }) satisfies MRT_ColumnDef<TableConnection>,
       ),
-    },
-    {
-      header: t("Host"),
-      size: 240,
-      accessorFn: ({ metadata }) => metadata.host || metadata.destinationIP,
-    },
-    {
-      header: t("Process"),
-      size: 140,
-      accessorFn: ({ metadata }) => metadata.process,
-    },
-    {
-      header: t("Download"),
-      size: 88,
-      accessorFn: ({ download }) => parseTraffic(download).join(" "),
-    },
-    {
-      header: t("Upload"),
-      size: 88,
-      accessorFn: ({ upload }) => parseTraffic(upload).join(" "),
-    },
-    {
-      header: t("DL Speed"),
-      size: 88,
-      accessorFn: ({ downloadSpeed }) =>
-        parseTraffic(downloadSpeed).join(" ") + "/s",
-    },
-    {
-      header: t("UL Speed"),
-      size: 88,
-      accessorFn: ({ uploadSpeed }) =>
-        parseTraffic(uploadSpeed).join(" ") + "/s",
-    },
-    {
-      header: t("Chains"),
-      size: 360,
-      accessorFn: ({ chains }) => [...chains].reverse().join(" / "),
-    },
-    {
-      header: "Rule",
-      size: 200,
-      accessorFn: ({ rule, rulePayload }) =>
-        rulePayload ? `${rule} (${rulePayload})` : rule,
-    },
-    {
-      header: t("Time"),
-      size: 120,
-      accessorFn: ({ start }) => dayjs(start).fromNow(),
-    },
-    {
-      header: "Source",
-      size: 200,
-      accessorFn: ({ metadata: { sourceIP, sourcePort } }) =>
-        `${sourceIP}:${sourcePort}`,
-    },
-    {
-      header: t("Destination"),
-      size: 200,
-      accessorFn: ({ metadata: { destinationIP, destinationPort } }) =>
-        `${destinationIP}:${destinationPort}`,
-    },
-    {
-      header: t("Type"),
-      size: 160,
-      accessorFn: ({ metadata }) => `${metadata.type} (${metadata.network})`,
-    },
-  ];
+    [t],
+  );
 
   const table = useMaterialReactTable({
     columns,
@@ -195,7 +227,7 @@ export const ConnectionsTable = ({ searchTerm }: { searchTerm?: string }) => {
   ) : (
     <ContentDisplay
       className="!absolute !h-full !w-full"
-      message="No Connection"
+      message={t("No Connections")}
     />
   );
 };

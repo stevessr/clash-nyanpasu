@@ -3,7 +3,8 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-
+// This lint was needed by ambassador
+#![allow(clippy::duplicated_attributes)]
 mod cmds;
 mod config;
 mod consts;
@@ -256,7 +257,7 @@ pub fn run() -> std::io::Result<()> {
             ipc::get_runtime_config,
             ipc::get_runtime_yaml,
             ipc::get_runtime_exists,
-            ipc::get_runtime_logs,
+            ipc::get_postprocessing_output,
             ipc::clash_api_get_proxy_delay,
             ipc::uwp::invoke_uwp_tool,
             // updater
@@ -336,14 +337,14 @@ pub fn run() -> std::io::Result<()> {
                     tauri::WindowEvent::CloseRequested { .. } => {
                         log::debug!(target: "app", "window close requested");
                         let _ = resolve::save_window_state(app_handle, true);
-                    }
-                    tauri::WindowEvent::Destroyed => {
-                        log::debug!(target: "app", "window destroyed");
-                        reset_window_open_counter();
                         #[cfg(target_os = "macos")]
                         log_err!(app_handle.run_on_main_thread(|| {
                             crate::utils::dock::macos::hide_dock_icon();
                         }));
+                    }
+                    tauri::WindowEvent::Destroyed => {
+                        log::debug!(target: "app", "window destroyed");
+                        reset_window_open_counter();
                     }
                     tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) => {
                         log::debug!(target: "app", "window moved or resized");
